@@ -1,0 +1,8 @@
+# find interface and connect directly to CANbus port
+ACTION=="add", SUBSYSTEM=="net", KERNELS=="spi0.0", NAME="can0", ENV{VE_NAME}="can0", RUN+="/usr/bin/logger [udev] CANbus device added: can0 spi0.0"
+
+# udevadm info -a -n /dev/ttySC0
+# udevadm info -a -n /dev/ttySC1
+# spi1.0: ttySC1 at I/O 0x1 (irq = 199, base_baud = 921600) is a SC16IS752
+ACTION=="add", KERNELS=="spi1.0", SUBSYSTEM=="tty", ATTR{line}=="0", DRIVERS=="sc16is7xx", ENV{VE_SERVICE}="rs485", RUN+="/usr/bin/logger [udev] RS485 device added: ttySC0 spi1.0"
+ACTION=="add", KERNELS=="spi1.0", SUBSYSTEM=="tty", ATTR{line}=="1", DRIVERS=="sc16is7xx", ENV{VE_SERVICE}="rs485", RUN+="/usr/bin/logger [udev] RS485 device added: ttySC1 spi1.0"
