@@ -108,7 +108,8 @@ fi
 if [ $scriptAction == 'UNINSTALL' ] ; then
     restoreActiveFile "$gpioListFile"
 	restoreActiveFile "$rulesFile"
-    restoreActiveFile "$overlayFile"
+	# install overlay only if it doesn't exist
+	[ -f "$overlayFile" ] || restoreActiveFile "$overlayFile"
 
     # remove mods from configFile - do not use restore in case other mods were made manually
     if [ -f "$configFile" ]; then
