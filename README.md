@@ -23,9 +23,11 @@ The setup scripts adds the following lines to `/u-boot/config.txt`:
     dtparam=spi=on
 	dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=25,,spimaxfrequency=1000000
 	dtoverlay=sc16is752-spi1,int_pin=24
+	gpio=16=ip,pu
     #### end CAN+RS485 overlay
 
-The two comment lines are required to find the modifications on uninstallation, so please do not remove them!
+The two comment lines (first and last) are required to find the modifications on uninstallation, so please do not remove them!
+The last line (`gpio=16=ip,pu`) activates the internal pull-up for GPIO pin 16 (used by ShutdownMonitor).
 
 ## Hardware requirements
 
