@@ -10,13 +10,15 @@ Since two GPIOs used for VenusOS collide with the SPI-1 bus needed for the RS485
 | Pin             | Default          | New              |
 | --------------- | ---------------- | ---------------- |
 | Relay 1         | Pin 40 / GPIO 21 | Pin 13 / GPIO 27 |
+| Digital input 3 | Pin 33 / GPIO 13 | Pin 11 / GPIO 17 |
 | Digital input 4 | Pin 35 / GPIO 19 | Pin 15 / GPIO 22 |
-
-> [!IMPORTANT]  
-> Since Pin 13 is the only available PWM output with the hat, the Relay 1 pin may change in the future.
 
 Additionally, the digital input 6 is added as required by [ShutdownMonitor](https://github.com/kwindrem/ShutdownMonitor) (Pin 36 / GPIO 16
 ).
+
+Here is the complete pin usage overview (with an additional backlight PWM pin for TFT display):
+
+
 
 ## Configuration changes
 
