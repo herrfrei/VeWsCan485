@@ -18,7 +18,7 @@ Additionally, the digital input 6 is added as required by [ShutdownMonitor](http
 
 Here is the complete pin usage overview (with an additional backlight PWM pin for TFT display):
 
-
+![](images/RPI3-GPIO-VICTRON.svg)
 
 ## Configuration changes
 

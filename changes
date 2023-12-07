@@ -1,5 +1,5 @@
-v1.0
-	initial version, tested on Venus OS xx.x
-
 v1.1
 	moved digital input 3 from GPIO13 to GPIO17
+
+v1.0
+	initial version, tested on Venus OS xx.x
