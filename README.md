@@ -1,7 +1,12 @@
 # Victron VenusOs package for Waveshare RS485 CAN HAT (B)
 
-This package adds suport for the [Waveshare RS485 CAN HAT (B)](https://www.waveshare.com/rs485-can-hat-b.htm
-) to Victron VenusOs version 3.0 and newer.
+This package adds support for the [Waveshare RS485 CAN HAT (B)](https://www.waveshare.com/rs485-can-hat-b.htm
+) to Victron VenusOs version 3.0 and newer. Since the HAT uses a couple of GPIO pins, ensure that it is compatible 
+with any other addons and hardware you use!
+
+The following addons are **incompatible** with the HAT:
+
+- https://github.com/kwindrem/RpiGpioSetup (additional digital inputs and relay outputs)
 
 ## Pin assignment changes
 
