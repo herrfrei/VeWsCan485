@@ -20,17 +20,26 @@
 # to uninstall/deactivate, call this script with "uninstall" as first parameter
 
 # original assignments for relays 5 and 6 create conflicts with interrypt pins
-#	on hat boards such as the Waveshare dual CANbus hats (regular and FD versions)
-#	An option in this setup script allows selection of different GPIO assignments
-#	for relays 5 and 6 to avoid these conflicts
+# on hat boards such as the Waveshare dual CANbus hats (regular and FD versions)
+# An option in this setup script allows selection of different GPIO assignments
+# for relays 5 and 6 to avoid these conflicts
 #
-#	Because this conflict will be rare, the option is considered optional.
-#	That is, an automatic install WILL be permitted even if a manual install has not
-#		been perfomred.
+# Because this conflict will be rare, the option is considered optional.
+# That is, an automatic install WILL be permitted even if a manual install has not
+#   been perfomred.
 #
-#	VeCanSetup will alert the user of conflicts and prevent installing the second
-#		CANbus interface until this script is rerun to move the relay assignments.
+# VeCanSetup will alert the user of conflicts and prevent installing the second
+#   CANbus interface until this script is rerun to move the relay assignments.
 
+# This package makes the following modifications:
+#   - modifies the GPIOs for digital inputs and relay output (relay_1 GPIO 21 -> 16)
+#     - relay_1          Pin 40 / GPIO 21 -> Pin 36 / GPIO 16
+#     - digital_input_4  Pin 35 / GPIO 19 -> Pin 26 / GPIO  7
+#     - digital_input_6  (shutdown pin)      Pin 36 / GPIO 16
+#   - installs the overlay file for the SC16IS752 controller (RS485)
+#   - installs the udev rules to use the RS485 ports in Venus OS
+#   - activates the overlays in config.txt
+  
 # Note, this script DOES require a system reboot.
 
 gpioListFile="/etc/venus/gpio_list"
@@ -38,91 +47,52 @@ rulesFile="/etc/udev/rules.d/wscanrs485.rules"
 overlayFile="/u-boot/overlays/sc16is752-spi1.dtbo"
 configFile="/u-boot/config.txt"
 
+standardPromptAndActions='yes'
+
 #### following lines incorporate SetupHelper utilities into this script
 # Refer to the SetupHelper ReadMe file for details.
     
-source "/data/SetupHelper/CommonResources"
+source "/data/SetupHelper/HelperResources/IncludeHelpers"
 
 #### end of lines to include SetupHelper
 
-####### this is duplicate to code in CommonResources -- keep in case SetupHelepr has not been updated
-# prevent installing if not a Raspberry Pi
-if [ -f /etc/venus/machine ]; then
-    machine=$(cat /etc/venus/machine)
-fi
-if [ -z $machine ]; then
-    if [ -f "$installedFlag" ]; then
-        logMessage "can't determine Venus device type - uninstalling"
-        scriptAction='UNINSTALL'
-    else
-        logMessage "can't determine Venus device type - exiting"
-		exit $INCOMPATIBLE_PLATFORM
-    fi
-elif [ $machine != "raspberrypi2" ] && [ $machine != "raspberrypi4" ]; then
-    if [ -f "$installedFlag" ]; then
-        logMessage "$packageName not compatible with $machine - uninstalling"
-        scriptAction='UNINSTALL'
-    else
-        logMessage "$packageName not compatible with $machine - exiting"
-		exit $INCOMPATIBLE_PLATFORM
-    fi
-fi
-
-#### running manually and OK to proceed - prompt for input
-if [ $scriptAction == 'NONE' ] ; then
-    # display innitial message
-    echo
-    echo "This package makes the following modifications:"
-    echo "  - modifies the GPIOs for digital inputs and relay output (relay_1 GPIO 21 -> 16)"
-	echo "    - relay_1          Pin 40 / GPIO 21 -> Pin 36 / GPIO 16"
-	echo "    - digital_input_4  Pin 35 / GPIO 19 -> Pin 26 / GPIO  7"
-	echo "    - digital_input_6  (shutdown pin)      Pin 36 / GPIO 16"
-    echo "  - installs the overlay file for the SC16IS752 controller (RS485)"
-    echo "  - installs the udev rules to use the RS485 ports in Venus OS"
-	echo "  - activates the overlays in config.txt"    
-	echo
-	yesNoPrompt "Do you want to continue (y/n)?: "
-	if $yesResponse ; then
-		scriptAction='INSTALL'
-	fi
-fi
 #### installing
 if [ $scriptAction == 'INSTALL' ] ; then
-	updateActiveFile "$gpioListFile"    
-	updateActiveFile "$rulesFile"
-	# install overlay only if it doesn't exist
-    [ -f "$overlayFile" ] || updateActiveFile "$overlayFile"
+  updateActiveFile "$gpioListFile"    
+  updateActiveFile "$rulesFile"
+  # install overlay only if it doesn't exist
+  [ -f "$overlayFile" ] || updateActiveFile "$overlayFile"
 
-    if [ $(grep -c "CAN+RS485 overlay" "$configFile") == 0 ]; then
-        logMessage "activating CAN+RS485 DT overlay"
-        echo "#### begin CAN+RS485 overlay" >> "$configFile"
-        echo "dtparam=spi=on" >> "$configFile"
-		echo "dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=25,,spimaxfrequency=1000000" >> "$configFile"
-		echo "dtoverlay=sc16is752-spi1,int_pin=24" >> "$configFile"
-		echo "gpio=16=ip,pu" >> "$configFile"
-        echo "#### end CAN+RS485 overlay" >> "$configFile"
-        filesUpdated=true
-    fi
+  if [ $(grep -c "CAN+RS485 overlay" "$configFile") == 0 ]; then
+    logMessage "activating CAN+RS485 DT overlay"
+    echo "#### begin CAN+RS485 overlay" >> "$configFile"
+    echo "dtparam=spi=on" >> "$configFile"
+    echo "dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=25,,spimaxfrequency=1000000" >> "$configFile"
+    echo "dtoverlay=sc16is752-spi1,int_pin=24" >> "$configFile"
+    echo "gpio=16=ip,pu" >> "$configFile"
+    echo "#### end CAN+RS485 overlay" >> "$configFile"
+    filesUpdated=true
+  fi
 fi
 
 # uninstalling - check scriptAction again
 # if an install step failed package needs to be removed
 if [ $scriptAction == 'UNINSTALL' ] ; then
-    restoreActiveFile "$gpioListFile"
-	restoreActiveFile "$rulesFile"	
-	restoreActiveFile "$overlayFile"
+  restoreActiveFile "$gpioListFile"
+  restoreActiveFile "$rulesFile"  
+  restoreActiveFile "$overlayFile"
 
-    # remove mods from configFile - do not use restore in case other mods were made manually
-    if [ -f "$configFile" ]; then
-        if [ $(grep -c "#### begin CAN+RS485 overlay" "$configFile") != 0 ]; then
-            sed -i -e '/#### begin CAN+RS485 overlay/,/#### end CAN+RS485 overlay/d' "$configFile"
-            filesUpdated=true
-        fi
+  # remove mods from configFile - do not use restore in case other mods were made manually
+  if [ -f "$configFile" ]; then
+    if [ $(grep -c "#### begin CAN+RS485 overlay" "$configFile") != 0 ]; then
+      sed -i -e '/#### begin CAN+RS485 overlay/,/#### end CAN+RS485 overlay/d' "$configFile"
+      filesUpdated=true
     fi
+  fi
 fi
 
 if $filesUpdated ; then
-    rebootNeeded=true
+  rebootNeeded=true
 fi
 
 # thats all folks - SCRIPT EXITS INSIDE THE FUNCTION

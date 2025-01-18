@@ -1,3 +1,6 @@
+v1.2.
+  Fix for latest SetupHelper
+  
 v1.1
 	moved digital input 3 from GPIO13 to GPIO17
 
