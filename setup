@@ -47,14 +47,31 @@ rulesFile="/etc/udev/rules.d/wscanrs485.rules"
 overlayFile="/u-boot/overlays/sc16is752-spi1.dtbo"
 configFile="/u-boot/config.txt"
 
-standardPromptAndActions='yes'
-
 #### following lines incorporate SetupHelper utilities into this script
 # Refer to the SetupHelper ReadMe file for details.
     
 source "/data/SetupHelper/HelperResources/IncludeHelpers"
 
 #### end of lines to include SetupHelper
+
+#### running manually and OK to proceed - prompt for input
+if [ $scriptAction == 'NONE' ] ; then
+  # display innitial message
+  echo
+  echo "This package makes the following modifications:"
+  echo "  - modifies the GPIOs for digital inputs and relay output (relay_1 GPIO 21 -> 16)"
+  echo "    - relay_1          Pin 40 / GPIO 21 -> Pin 36 / GPIO 16"
+  echo "    - digital_input_4  Pin 35 / GPIO 19 -> Pin 26 / GPIO  7"
+  echo "    - digital_input_6  (shutdown pin)      Pin 36 / GPIO 16"
+  echo "  - installs the overlay file for the SC16IS752 controller (RS485)"
+  echo "  - installs the udev rules to use the RS485 ports in Venus OS"
+  echo "  - activates the overlays in config.txt"    
+  echo
+  yesNoPrompt "Do you want to continue (y/n)?: "
+  if $yesResponse ; then
+    scriptAction='INSTALL'
+  fi
+fi
 
 #### installing
 if [ $scriptAction == 'INSTALL' ] ; then
